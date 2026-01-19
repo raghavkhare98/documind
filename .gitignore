@@ -1,0 +1,10 @@
+#Virtual Environments
+.venv
+
+notes.md
+
+#test dataset
+/data
+
+#Mac specific files
+.DS_Store
