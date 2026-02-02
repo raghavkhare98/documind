@@ -25,6 +25,12 @@ class DocumentLoader:
             fullText = []
             for para in doc.paragraphs:
                 fullText.append(para.text)
+            
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = ' | '.join(cell.text for cell in row.cells)
+                    fullText.append(row_text)
+            
             return '\n'.join(fullText)
         except Exception as e:
             raise ValueError(f"Error reading DOCX: {e}")
@@ -34,14 +40,21 @@ class DocumentLoader:
             return f.read()
     
     def load(self) -> str:
-        extension = self.file_path.split(".")[-1]
-        if extension == "pdf":
-            return self.load_pdf()
-        elif extension == "txt":
-            return self.load_txt()
-        elif extension == "docx":
-            return self.load_docx()
-        elif extension == "md":
-            return self.load_md()
-        else:
+        
+        if not self.file_path:
+            raise ValueError("File path is required")
+
+        extension = self.file_path.split(".")[-1].lower()
+
+        loaders = {
+            "pdf": self.load_pdf,
+            "txt": self.load_txt,
+            "docx": self.load_docx,
+            "md": self.load_md
+        }
+
+        loader = loaders.get(extension)
+        if not loader:
             raise ValueError(f"Unsupported file format: {self.file_path}")
+        
+        return loader()
