@@ -10,7 +10,10 @@ class DocumentProcessor:
         """
         Normalize whitespaces in a page, and retain the document structure
         """
-        text = text.replace("\r\n", "\n").replace("\r", "\n")
+        if not self.text:
+            return ""
+
+        text = self.text.replace("\r\n", "\n").replace("\r", "\n")
 
         lines = [line.strip() for line in text.split("\n")]
 
@@ -20,7 +23,9 @@ class DocumentProcessor:
 
         text = re.sub(r"\n{3,}", "\n\n", text)
         
-        return text
+        self.text = text
+
+        return self
     
     def remove_special_characters(self, keep_punctuation: bool = True) -> str:
         
@@ -55,3 +60,63 @@ class DocumentProcessor:
                 cleaned_text.append(char)
         
         return "".join(cleaned_text)
+
+    def extract_metadata(self, doc_id: str, doc_name: str = None, doc_path: str = None) -> dict:
+        
+        if not self.text:
+            return{
+                "doc_id": doc_id,
+                "doc_name": doc_name,
+                "doc_path": doc_path,
+                "word_count": 0,
+                "char_count": 0,
+                "sentence_count": 0
+            }
+        words = self.text.split()
+        word_count = len(words)
+        
+        char_count = len(self.text.replace(" ", "").replace("\n", "").replace("\t", ""))
+
+        sentence_endings = re.findall(r'[.!?]+', self.text)
+        sentence_count = len(sentence_endings) if sentence_endings else 1
+
+        return {
+            "doc_id": doc_id,
+            "doc_name": doc_name,
+            "doc_path": doc_path,
+            "word_count": word_count,
+            "char_count": char_count,
+            "sentence_count": sentence_count
+        }
+    
+    def preserve_structure(self) -> str:
+        if not self.text:
+            return ""
+        
+        lines = self.text.split("\n")
+        processed_lines = []
+        for line in lines:
+            stripped = line.strip()
+
+            if not stripped:
+                processed_lines.append('')
+                continue
+            
+            if stripped.startswith("#"):
+                processed_lines.append(f'[HEADER] {stripped}')
+            elif stripped.isupper() and len(stripped.split()) >= 3:
+                processed_lines.append(f'[HEADER] {stripped}')
+            elif '|' in stripped or '\t' in line:
+                if stripped.count('|') >= 2 or line.count('\t') >= 2:
+                    processed_lines.append(f'[TABLE] {stripped}')
+                else:
+                    processed_lines.append(stripped)
+            elif re.match(r'^[\-\*\+•]\s+', stripped):
+                processed_lines.append(f'[BULLET] {stripped}')
+            elif re.match(r'^\d+[\.\)]\s+', stripped):
+                processed_lines.append(f'[NUMBERED] {stripped}')
+            else:
+                processed_lines.append(stripped)
+        
+        return '\n'.join(processed_lines)
+        
