@@ -59,7 +59,8 @@ class DocumentProcessor:
             elif unicodedata.category(char) not in ('Cc', 'Cf', 'Cs', 'Co', 'Cn'):
                 cleaned_text.append(char)
         
-        return "".join(cleaned_text)
+        self.text = "".join(cleaned_text)
+        return self
 
     def extract_metadata(self, doc_id: str, doc_name: str = None, doc_path: str = None) -> dict:
         
@@ -118,5 +119,5 @@ class DocumentProcessor:
             else:
                 processed_lines.append(stripped)
         
-        return '\n'.join(processed_lines)
-        
+        self.text = '\n'.join(processed_lines)
+        return self
