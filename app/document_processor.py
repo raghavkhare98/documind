@@ -2,6 +2,8 @@ import re
 import string
 import unicodedata
 
+from app.utils import count_words, count_characters
+
 class DocumentProcessor:
     def __init__(self, text: str) -> None:
         self.text = text
@@ -73,13 +75,9 @@ class DocumentProcessor:
                 "char_count": 0,
                 "sentence_count": 0
             }
-        words = self.text.split()
-        word_count = len(words)
         
-        char_count = len(self.text.replace(" ", "").replace("\n", "").replace("\t", ""))
-
-        sentence_endings = re.findall(r'[.!?]+', self.text)
-        sentence_count = len(sentence_endings) if sentence_endings else 1
+        word_count = count_words(self.text)
+        char_count = count_characters(self.text, exclude_whitespace=True)
 
         return {
             "doc_id": doc_id,
@@ -87,7 +85,6 @@ class DocumentProcessor:
             "doc_path": doc_path,
             "word_count": word_count,
             "char_count": char_count,
-            "sentence_count": sentence_count
         }
     
     def preserve_structure(self) -> str:

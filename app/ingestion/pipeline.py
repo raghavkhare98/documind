@@ -20,7 +20,7 @@ class IngestionPipeline:
         metadata = processor.extract_metadata(
             doc_id=doc_id, 
             doc_name=doc_name, 
-            doc_path = file_path)
+            doc_path=file_path)
         
         return {
             "doc_id": doc_id,
