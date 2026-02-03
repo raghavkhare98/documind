@@ -9,3 +9,6 @@ notes.md
 
 #Mac specific files
 .DS_Store
+
+#Cache files
+__pycache__/
