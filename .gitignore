@@ -12,3 +12,6 @@ notes.md
 
 #Cache files
 __pycache__/
+
+#key files
+*.pem
