@@ -43,11 +43,11 @@ class IndexingPipeline:
     
     def __init__(
         self,
+        embedding_model: str,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         milvus_host: str = None,
-        collection_name: str = "technical_docs",
-        embedding_model: str = "text-embedding-3-small"
+        collection_name: str = "technical_docs"
     ):
         """
         Initialize the indexing pipeline
