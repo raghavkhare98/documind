@@ -4,6 +4,13 @@ import hashlib
 
 from app.utils import count_words
 
+"""
+Previous chunker was storing state, i.e, self.text, self.doc_id, self.metadata which
+leads to creation of new chunker for each document
+
+New design makes chunker stateless and reusable across multiple documents
+"""
+
 class DocumentChunker:
     def __init__(
         self,
