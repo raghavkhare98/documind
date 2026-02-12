@@ -10,18 +10,16 @@ class EmbeddingGenerator:
     
     def __init__(
         self,
-        model: str = "text-embedding-3-small",
-        api_key: str = None
+        model: str = "text-embedding-3-small"
     ):
         """
         Initialize the embedding generator
         
         Args:
             model: OpenAI embedding model name
-            api_key: OpenAI API key (defaults to OPENAI_KEY env var)
         """
         self.model = model
-        self.api_key = api_key or os.getenv("OPENAI_KEY")
+        self.api_key = os.getenv("OPENAI_KEY")
         
         if not self.api_key:
             raise ValueError("OpenAI API key not found. Set OPENAI_KEY environment variable.")
