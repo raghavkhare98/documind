@@ -1,5 +1,5 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from typing import List, Dict, Any
+from typing import Any
 import hashlib
 
 from app.utils import count_words
@@ -14,9 +14,9 @@ New design makes chunker stateless and reusable across multiple documents
 class DocumentChunker:
     def __init__(
         self,
-        chunk_size: int = 1000,
-        overlap: int = 200,
-        separators: List[str] = None
+        chunk_size: int,
+        overlap: int,
+        separators: list[str] = None
         ):
         """
         Initialize the chunker with text and size params
@@ -60,7 +60,7 @@ class DocumentChunker:
         content_hash = hashlib.sha256(content.encode()).hexdigest()[:8]
         return f"{doc_id}_chunk_{chunk_idx}_{content_hash}"
     
-    def chunk(self, text: str, metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def chunk(self, text: str, metadata: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Split the text into chunks
 

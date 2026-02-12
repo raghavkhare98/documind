@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Any, Optional, Literal
+from typing import Any, Optional, Literal
 from pymilvus import (
     connections,
     Collection,
@@ -155,7 +155,7 @@ class MilvusVectorStore:
         )
         print("Created vector index")
     
-    def insert_chunks(self, chunks: List[Dict[str, Any]]) -> List[str]:
+    def insert_chunks(self, chunks: list[dict[str, Any]]) -> list[str]:
         """
         Insert document chunks with embeddings into Milvus
         
@@ -214,12 +214,12 @@ class MilvusVectorStore:
     
     def search(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         top_k: int = 5,
         doc_type: Optional[str] = None,
         source: Optional[str] = None,
         filter_expr: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search for similar chunks using vector similarity
         
@@ -280,10 +280,10 @@ class MilvusVectorStore:
     
     def search_by_type(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         doc_type: str,
         top_k: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Convenience method: Search within a specific document type
 
@@ -328,7 +328,7 @@ class MilvusVectorStore:
         except Exception as e:
             raise RuntimeError(f"Failed to delete chunks: {str(e)}")
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, Any]:
         """Get statistics about the collection"""
         self.collection.flush()
         stats = {
@@ -351,7 +351,7 @@ class MilvusVectorStore:
         
         return stats
     
-    def list_sources(self, doc_type: Optional[str] = None) -> List[str]:
+    def list_sources(self, doc_type: Optional[str] = None) -> list[str]:
         """
         List all unique sources in the collection
 

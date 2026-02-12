@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Any
+from typing import Any
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -34,7 +34,7 @@ class EmbeddingGenerator:
         
         self.embedding_dim = self.model_dimensions.get(model, 1536)
     
-    def generate_embedding(self, text: str) -> List[float]:
+    def generate_embedding(self, text: str) -> list[float]:
         """
         Generate embedding for a single text
         
@@ -59,9 +59,9 @@ class EmbeddingGenerator:
     
     def generate_embeddings_batch(
         self,
-        texts: List[str],
+        texts: list[str],
         batch_size: int = 100
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """
         Generate embeddings for multiple texts in batches
         
@@ -94,7 +94,7 @@ class EmbeddingGenerator:
         
         return all_embeddings
     
-    def embed_chunks(self, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def embed_chunks(self, chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Generate embeddings for document chunks
         
