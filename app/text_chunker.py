@@ -7,27 +7,20 @@ from app.utils import count_words
 class DocumentChunker:
     def __init__(
         self,
-        text: str,
         chunk_size: int = 1000,
         overlap: int = 200,
-        separators: List[str] = None,
-        **kwargs
+        separators: List[str] = None
         ):
         """
         Initialize the chunker with text and size params
 
         Args:
-            text: The preprocessed doc text
-            target_chunk_size: Ideal chunk size in words
-            max_chunk_size: Maximum allowed chunk size in words
-            min_chunk_size: Minimum chunk size (smaller chunks will get merged)
-            overlap_size: Number of overlapping words b/w chunks
+            chunk_size: Target chunk size in words
+            overlap: Number of overlapping words between chunks
+            separators: List of separators for splitting (optional)
         """
-        self.text = text
         self.chunk_size = chunk_size
         self.overlap = overlap
-        self.doc_id = kwargs.get('doc_id', 'unknown')
-        self.metadata = kwargs.get('metadata', {})
 
         if separators is None:
             self.separators = [
@@ -60,24 +53,36 @@ class DocumentChunker:
         content_hash = hashlib.sha256(content.encode()).hexdigest()[:8]
         return f"{doc_id}_chunk_{chunk_idx}_{content_hash}"
     
-    def chunk(self) -> List[Dict[str, Any]]:
+    def chunk(self, text: str, metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Split the text into chunks
+
+        Args:
+            text: The preprocessed doc text
+            metadata: Doc metadata from DocumentProcessor.extract_metadata()
+                Must contain: doc_id, doc_name, doc_path, doc_type, source
+        
+        Returns:
+            List of chunk dicts ready for embedding
         """
-        if not self.text:
+        if not text:
             return []
         
-        chunks = self.splitter.split_text(self.text)
+        doc_id = metadata.get("doc_id", "unknown")
+        
+        chunks = self.splitter.split_text(text)
         
         chunk_objects = []
         
         for idx, chunk_content in enumerate(chunks):
-            chunk_id = self._generate_chunk_id(self.doc_id, idx, chunk_content)
+            chunk_id = self._generate_chunk_id(doc_id, idx, chunk_content)
             
             merged_metadata = {
-                "doc_name": self.metadata["doc_name"],
-                "doc_path": self.metadata["doc_path"],
-                "word_count_at_source": self.metadata["word_count"],
+                "doc_name": metadata["doc_name"],
+                "doc_type": metadata["doc_type"],
+                "source": metadata["source"],
+                "doc_path": metadata["doc_path"],
+                "word_count_at_source": metadata["word_count"],
                 "chunk_index": idx,
                 "chunk_size": self.chunk_size,
                 "overlap": self.overlap,
@@ -93,4 +98,4 @@ class DocumentChunker:
                 "metadata": merged_metadata
             })
         
-        return chunk_objects[0]['metadata']
+        return chunk_objects
