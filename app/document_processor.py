@@ -1,12 +1,22 @@
 import re
 import string
 import unicodedata
+from typing import Literal
 
 from app.utils import count_words, count_characters
 
+DocType = Literal["documentation", "rfc", "research", "manual"]
+
 class DocumentProcessor:
-    def __init__(self, text: str) -> None:
+    def __init__(
+        self, 
+        text: str,
+        doc_type: DocType,
+        source: str
+    ) -> None:
         self.text = text
+        self.doc_type = doc_type
+        self.source = source
     
     def clean_whitespace(self) -> str:
         """
@@ -71,6 +81,8 @@ class DocumentProcessor:
                 "doc_id": doc_id,
                 "doc_name": doc_name,
                 "doc_path": doc_path,
+                "source": self.source,
+                "doc_type": self.doc_type,
                 "word_count": 0,
                 "char_count": 0,
                 "sentence_count": 0
@@ -83,6 +95,8 @@ class DocumentProcessor:
             "doc_id": doc_id,
             "doc_name": doc_name,
             "doc_path": doc_path,
+            "doc_type": self.doc_type,
+            "source": self.source,
             "word_count": word_count,
             "char_count": char_count,
         }

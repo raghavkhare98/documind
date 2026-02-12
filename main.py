@@ -8,7 +8,7 @@ def main():
     
     chunker = DocumentChunker(text=doc["text"], doc_id=doc["doc_id"], metadata=doc["metadata"])
     chunks = chunker.chunk()
-    print(chunks)
+    
 
 if __name__ == "__main__":
     main()
