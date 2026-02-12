@@ -9,6 +9,9 @@ Previous chunker was storing state, i.e, self.text, self.doc_id, self.metadata w
 leads to creation of new chunker for each document
 
 New design makes chunker stateless and reusable across multiple documents
+
+Bug: DocumentChunker has no object doc_id, was present in line 103 where I did 
+"doc_id": self.doc_id, which is wrong
 """
 
 class DocumentChunker:
@@ -98,7 +101,7 @@ class DocumentChunker:
             
             chunk_objects.append({
                 "chunk_id": chunk_id,
-                "doc_id": self.doc_id,
+                "doc_id": doc_id,
                 "content": chunk_content,
                 "char_count": len(chunk_content),
                 "word_count": count_words(chunk_content),

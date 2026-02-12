@@ -15,3 +15,6 @@ __pycache__/
 
 #key files
 *.pem
+
+#testing files
+*_test.py
