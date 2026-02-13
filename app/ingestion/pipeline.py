@@ -43,7 +43,6 @@ class IndexingPipeline:
     
     def __init__(
         self,
-        embedding_model: str,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         milvus_host: str = None,
@@ -67,7 +66,7 @@ class IndexingPipeline:
             overlap=self.chunk_overlap
         )
         
-        self.embedder = EmbeddingGenerator(model=embedding_model)
+        self.embedder = EmbeddingGenerator()
         
         # Initialize vector store
         self.vector_store = MilvusVectorStore(
