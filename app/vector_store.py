@@ -339,6 +339,20 @@ class MilvusVectorStore:
         except Exception as e:
             raise RuntimeError(f"Failed to delete chunks: {str(e)}")
 
+    def drop_index(self) -> None:
+        """Drop the vector index (data is preserved)."""
+        self.collection.release()
+        self.collection.drop_index()
+        print(f"Index dropped for collection: {self.collection_name}")
+
+    def drop_collection(self) -> None:
+        """Drop the entire collection and all its data."""
+        self.collection.release()
+        utility.drop_collection(self.collection_name)
+        self.collection = None
+        print(f"Collection dropped: {self.collection_name}")
+
+
     def get_collection_stats(self) -> dict[str, Any]:
         """Get statistics about the collection"""
         self.collection.flush()
@@ -383,7 +397,47 @@ class MilvusVectorStore:
         except Exception as e:
             raise RuntimeError(f"Failed to list sources: {str(e)}")
 
+    def check_collection(collection_name: str="technical_docs", port: int=19530) -> None:
+        connections.connect(
+            host=os.getenv("MILVUS_HOST"),
+            port=port
+        )
+
+        print(f"Collection exists: {utility.has_collection(collection_name)}")
+
+        if utility.has_collection(collection_name):
+            collection = Collection(collection_name)
+            
+            print(f"Collection schema: {collection.schema}")
+            print(f"Number of entities (before load): {collection.num_entities}")
+            
+            print("Attempting to load collection...")
+            collection.load()
+            
+            # Flush to ensure data is persisted
+            print("Flushing collection...")
+            collection.flush()
+            
+            print(f"Number of entities (after load): {collection.num_entities}")
+            
+            print("\nTrying to query for any data...")
+            results = collection.query(
+                expr="chunk_index >= 0",
+                output_fields=["chunk_id", "doc_name", "doc_type"],
+                limit=10
+            )
+            
+            print(f"Found {len(results)} chunks")
+            if results:
+                print("Sample data:")
+                for r in results[:3]:
+                    print(f"  - {r}")
+
+        connections.disconnect("default")
+
     def disconnect(self):
         """Disconnect from Milvus"""
         connections.disconnect("default")
         print("Disconnected from Milvus")
+    
+    
