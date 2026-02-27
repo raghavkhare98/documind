@@ -1,3 +1,4 @@
+import hashlib
 from app.document_loader import DocumentLoader
 from app.document_processor import DocumentProcessor
 from app.embeddings import EmbeddingGenerator
@@ -23,7 +24,7 @@ class IngestionPipeline:
         processor.clean_whitespace().remove_special_characters().preserve_structure()
         cleaned_text = processor.text
         
-        doc_id = str(uuid.uuid4())
+        doc_id = hashlib.sha256(file_path.encode()).hexdigest()[:32]
         doc_name = loader_metadata["file_name"]
         metadata = processor.extract_metadata(
             doc_id=doc_id, 
@@ -138,9 +139,28 @@ class IndexingPipeline:
             "status": "success"
         }
     
+    def is_document_indexed(self, file_path: str) -> bool:
+        """Check if document is already indexed"""
+        import hashlib
+        doc_id = hashlib.sha256(file_path.encode()).hexdigest()[:32]
+        
+        try:
+            # Query for chunks from this document
+            self.vector_store.collection.load()
+            results = self.vector_store.collection.query(
+                expr=f'doc_id == "{doc_id}"',
+                output_fields=["chunk_id"],
+                limit=1
+            )
+            return len(results) > 0
+        except Exception as e:
+            print(f"Error checking if document is indexed: {e}")
+            return False
+
     def index_directory(
         self,
         directory_path: str,
+        skip_existing: bool = True,
         store_in_milvus: bool = True
     ) -> dict:
         """
@@ -153,6 +173,7 @@ class IndexingPipeline:
         Returns:
             Dictionary with summary statistics
         """
+
         ingestion_pipeline = IngestionPipeline()
         results = []
         supported_exts = {'.pdf', '.txt', '.docx', '.md'}
@@ -173,8 +194,19 @@ class IndexingPipeline:
                     all_files.append(file_path)
         
         print(f"Found {len(all_files)} supported documents\n")
+        
         for idx, file_path in enumerate(all_files, 1):
             filename = os.path.basename(file_path)
+
+            if skip_existing and self.is_document_indexed(file_path):
+                print(f"Skipping (already indexed): {filename}")
+                results.append({
+                    "file_path": file_path,
+                    "doc_name": filename,
+                    "status": "skipped"
+                })
+                continue
+
             print(f"[{idx}/{len(all_files)}] Processing: {filename}")
 
             try:
@@ -196,6 +228,7 @@ class IndexingPipeline:
         
         successful = [r for r in results if r.get("status") == "success"]
         failed = [r for r in results if r.get("status") == "failed"]
+        skipped = [r for r in results if r.get("status") == "skipped"]
         total_chunks = sum(r.get("num_chunks", 0) for r in successful)
 
         print(f"\n{'='*60}")
@@ -204,6 +237,7 @@ class IndexingPipeline:
         print(f"Total documents: {len(all_files)}")
         print(f"Successful: {len(successful)}")
         print(f"Failed: {len(failed)}")
+        print(f"Skipped: {len(skipped)}")
         print(f"Total chunks created: {total_chunks}")
         
         if failed:
@@ -217,6 +251,7 @@ class IndexingPipeline:
             "total_documents": len(all_files),
             "successful": len(successful),
             "failed": len(failed),
+            "skipped": len(skipped),
             "total_chunks": total_chunks,
             "results": results
         }
