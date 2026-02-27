@@ -130,6 +130,16 @@ class MilvusVectorStore:
         if utility.has_collection(self.collection_name):
             print(f"Loading existing collection: {self.collection_name}")
             self.collection = Collection(self.collection_name)
+
+            try:
+                self.collection.load()
+                self.collection.flush()
+                print(f"Collection loaded with {self.collection.num_entities} entities")
+            except Exception as e:
+                print(f"Failed to load collection: {str(e)}")
+                self.collection.release()
+                self.collection.load()
+                self.collection.flush()
         else:
             print(f"Creating new collection: {self.collection_name}")
             schema = self._create_schema()
@@ -137,9 +147,10 @@ class MilvusVectorStore:
                 name=self.collection_name,
                 schema=schema
             )
-            self._create_index()
+            self._create_index()    
+            self.collection.load()
         
-        self.collection.load()
+        print(f"Collection ready: {self.collection.num_entities} chunks available")
     
     def _create_index(self):
         """Create IVF_FLAT index for vector similarity search"""
