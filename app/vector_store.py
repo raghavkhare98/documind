@@ -439,5 +439,3 @@ class MilvusVectorStore:
         """Disconnect from Milvus"""
         connections.disconnect("default")
         print("Disconnected from Milvus")
-    
-    
