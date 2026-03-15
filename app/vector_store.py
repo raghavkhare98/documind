@@ -125,21 +125,22 @@ class MilvusVectorStore:
         
         return schema
     
+    LOAD_TIMEOUT = 30  # seconds
+
     def _init_collection(self):
         """Initialize or load the collection"""
         if utility.has_collection(self.collection_name):
             print(f"Loading existing collection: {self.collection_name}")
             self.collection = Collection(self.collection_name)
-
             try:
-                self.collection.load()
+                self.collection.load(timeout=self.LOAD_TIMEOUT)
                 self.collection.flush()
                 print(f"Collection loaded with {self.collection.num_entities} entities")
             except Exception as e:
-                print(f"Failed to load collection: {str(e)}")
-                self.collection.release()
-                self.collection.load()
-                self.collection.flush()
+                raise ConnectionError(
+                    f"Failed to load collection '{self.collection_name}' within "
+                    f"{self.LOAD_TIMEOUT}s — is Milvus healthy? ({e})"
+                )
         else:
             print(f"Creating new collection: {self.collection_name}")
             schema = self._create_schema()
@@ -147,9 +148,9 @@ class MilvusVectorStore:
                 name=self.collection_name,
                 schema=schema
             )
-            self._create_index()    
-            self.collection.load()
-        
+            self._create_index()
+            self.collection.load(timeout=self.LOAD_TIMEOUT)
+
         print(f"Collection ready: {self.collection.num_entities} chunks available")
     
     def _create_index(self):
@@ -254,7 +255,7 @@ class MilvusVectorStore:
             if doc_type:
                 if doc_type not in self.DOC_TYPES:
                     raise ValueError(f"Invalid doc_type. Must be one of: {list(self.DOC_TYPES.keys())}")
-                filters.append(f'doc_type == "{doc_type}')
+                filters.append(f'doc_type == "{doc_type}"')
             if source:
                 filters.append(f'source == "{source}"')
             filter_expr = " && ".join(filters) if filters else None
@@ -412,8 +413,8 @@ class MilvusVectorStore:
             print(f"Number of entities (before load): {collection.num_entities}")
             
             print("Attempting to load collection...")
-            collection.load()
-            
+            collection.load(timeout=30)
+
             # Flush to ensure data is persisted
             print("Flushing collection...")
             collection.flush()
